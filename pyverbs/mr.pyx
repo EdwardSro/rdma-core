@@ -103,11 +103,12 @@ cdef class MR(PyverbsCM):
                 free(self.buf)
         self.buf = NULL
 
-    def write(self, data, length):
+    def write(self, data, length, offset=0):
         """
         Write user data to the MR's buffer using memcpy
         :param data: User data to write
         :param length: Length of the data to write
+        :param offset: Writing offset
         :return: None
         """
         if not self.buf or length < 0:
@@ -115,9 +116,10 @@ cdef class MR(PyverbsCM):
                                    f' {length} is invalid')
         # If data is a string, cast it to bytes as Python3 doesn't
         # automatically convert it.
+        cdef int off = offset
         if isinstance(data, str):
             data = data.encode()
-        memcpy(self.buf, <char *>data, length)
+        memcpy(<char*>(self.buf + off), <char *>data, length)
 
     cpdef read(self, length, offset):
         """
