@@ -516,7 +516,10 @@ def traffic(client, server, iters, gid_idx, port, is_cq_ex=False, send_op=None):
     for _ in range(iters):
         c_send_wr, c_sg = get_send_elements(client, False)
         if client.use_mr_prefetch:
-            prefetch_mrs(client, [c_sg])
+            flags = e._IBV_ADVISE_MR_FLAG_FLUSH
+            if client.use_mr_prefetch == 'async':
+                flags = 0
+            prefetch_mrs(client, [c_sg], flags=flags)
         c_send_object = c_sg if send_op else c_send_wr
         send(client, c_send_object, gid_idx, port, send_op)
         poll(client.cq)
@@ -526,7 +529,10 @@ def traffic(client, server, iters, gid_idx, port, is_cq_ex=False, send_op=None):
         validate(msg_received, True, server.msg_size)
         s_send_wr, s_sg = get_send_elements(server, True)
         if server.use_mr_prefetch:
-            prefetch_mrs(server, [s_sg])
+            flags = e._IBV_ADVISE_MR_FLAG_FLUSH
+            if server.use_mr_prefetch == 'async':
+                flags = 0
+            prefetch_mrs(server, [s_sg], flags=flags)
         s_send_object = s_sg if send_op else s_send_wr
         send(server, s_send_object, gid_idx, port, send_op)
         poll(server.cq)
